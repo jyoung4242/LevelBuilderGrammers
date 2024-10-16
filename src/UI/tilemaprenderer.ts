@@ -1,4 +1,4 @@
-import { TileMap, Color, Engine, toRadians, Vector, Actor } from "excalibur";
+import { TileMap, Color, Engine, toRadians, Vector, Actor, Label, Font, Text } from "excalibur";
 import { Room, GridUnit, RoomType, Edge } from "../LevelBuilder/levelBuilder";
 import { keyRect, treasureRect, startRect, exitRect, bossRect, gpRect, emptyRect, edgeRectClosed, edgeRectOpen } from "./Shapes";
 
@@ -27,6 +27,19 @@ export function drawTilemap(game: Engine, tmap: TileMap, rooms: Room[], edges: E
         tile.addGraphic(gpRect);
       }
     } else tile.addGraphic(emptyRect);
+
+    if (currentRoom) {
+      const myColor = currentRoom.roomType === RoomType.Boss ? Color.White : Color.Black;
+      const label = new Text({
+        text: currentRoom.index.toString() as string,
+        font: new Font({
+          size: 8,
+          family: "Arial",
+          color: myColor,
+        }),
+      });
+      tile.addGraphic(label);
+    }
 
     // add edge graphics
     const currentEdges = edges.filter(e => e.from.roomID === grid[tileIndex].roomID);

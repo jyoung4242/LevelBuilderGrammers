@@ -4,8 +4,8 @@ import "./style.css";
 import { UI } from "@peasy-lib/peasy-ui";
 import { Engine, DisplayMode, TileMap, Rectangle, Color, Vector } from "excalibur";
 import { model, template } from "./UI/UI";
-import { LevelBuilder, RoomType } from "./LevelBuilder/levelBuilder";
-import { keyRect, treasureRect, startRect, exitRect, bossRect, gpRect, emptyRect } from "./UI/Shapes";
+import { LevelBuilder } from "./LevelBuilder/levelBuilder";
+
 import { Signal } from "./Lib/Signals";
 import { drawTilemap, resetTilemap } from "./UI/tilemaprenderer";
 
@@ -13,8 +13,8 @@ await UI.create(document.body, model, template).attached;
 const genLevel = new Signal("generateLevel");
 
 const game = new Engine({
-  width: 1200, // the width of the canvas
-  height: 800, // the height of the canvas
+  width: 2000, // the width of the canvas
+  height: 2000 * 0.75, // the height of the canvas
   canvasElementId: "cnv", // the DOM canvas element ID, if you are providing your own
   displayMode: DisplayMode.Fixed, // the display mode
   pixelArt: true,
@@ -52,4 +52,4 @@ drawTilemap(game, tmap, rooms, edges, grid);
 game.add(tmap);
 const camera = game.currentScene.camera;
 camera.pos = new Vector(80, 80);
-camera.zoom = 2.5;
+camera.zoom = 4;

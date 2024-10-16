@@ -39,6 +39,7 @@ export type Edge = {
 };
 
 export type Room = {
+  index: number;
   roomID: string;
   roomType: RoomType;
   roomPos: Vector;
@@ -53,7 +54,7 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
   0: (config: Rulesset) => {
     // dead end room
     //if treasures remain, roll dice on converting to treasure room
-    if (config.currentTreasures < config.targetTreasures) {
+    /* if (config.currentTreasures < config.targetTreasures) {
       if (config.rng.integer(1, 5) < 4) {
         // 60% chance to convert to treasure
         //convert room to treasure
@@ -71,14 +72,14 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
           config.currentKeys++;
         }
       }
-    }
+    } */
     return config;
   },
   1: (config: Rulesset) => {
     // room has 1 exit
 
     // decide if room changes
-    if (config.currentTreasures < config.targetTreasures) {
+    /*    if (config.currentTreasures < config.targetTreasures) {
       if (config.rng.integer(1, 10) < 2) {
         // 10% chance to convert to treasure
         //convert room to treasure
@@ -97,12 +98,14 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
         }
       }
     }
-
+ */
     // roll dice to see if you add rooms
     if (config.rng.d20() < 10 && config.currentRooms < config.targetRooms - 2) {
       config.currentRooms += 1;
       let nextRoomCoords = config.rng.pickOne(config.neighbors);
+
       let nextRoom: Room = {
+        index: config.rooms.length,
         roomID: UUID.generateUUID(),
         roomType: RoomType.General,
         roomPos: new Vector(nextRoomCoords.x, nextRoomCoords.y),
@@ -122,7 +125,7 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
     // room has 2 exits
 
     // decide if room changes
-    if (config.currentTreasures < config.targetTreasures) {
+    /*   if (config.currentTreasures < config.targetTreasures) {
       if (config.rng.integer(1, 10) < 2) {
         // 10% chance to convert to treasure
         //convert room to treasure
@@ -140,7 +143,7 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
           config.currentKeys++;
         }
       }
-    }
+    } */
 
     // roll dice to see if you add rooms
     config.neighbors.forEach(n => {
@@ -149,6 +152,7 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
         config.currentRooms++;
         let nextRoomCoords = n;
         let nextRoom: Room = {
+          index: config.rooms.length,
           roomID: UUID.generateUUID(),
           roomType: RoomType.General,
           roomPos: new Vector(nextRoomCoords.x, nextRoomCoords.y),
@@ -195,6 +199,7 @@ const GrammerRuleset: Record<number, (config: Rulesset) => void> = {
         config.currentRooms++;
         let nextRoomCoords = n;
         let nextRoom: Room = {
+          index: config.rooms.length,
           roomID: UUID.generateUUID(),
           roomType: RoomType.General,
           roomPos: new Vector(nextRoomCoords.x, nextRoomCoords.y),
@@ -329,6 +334,7 @@ export class LevelBuilder {
     }
 
     let longestPath = findLongestPath(this._rooms[0], this._edges);
+    //debugger;
     // get last element of longestPath
     let lastRoom = longestPath[longestPath.length - 1];
     let lastAvailableNeighbors = getAvailableNeighbors(lastRoom.roomPos, this._gridFlatArray);
@@ -336,6 +342,7 @@ export class LevelBuilder {
       // add boss room
       let bossRoomCoords = this.RNG.pickOne(lastAvailableNeighbors);
       let bossRoom: Room = {
+        index: this._rooms.length,
         roomID: UUID.generateUUID(),
         roomType: RoomType.Boss,
         roomPos: new Vector(bossRoomCoords.x, bossRoomCoords.y),
@@ -355,6 +362,7 @@ export class LevelBuilder {
       if (lastAvailableNeighbors.length > 0) {
         let exitRoomCoords = this.RNG.pickOne(lastAvailableNeighbors);
         let exitRoom: Room = {
+          index: this._rooms.length,
           roomID: UUID.generateUUID(),
           roomType: RoomType.Exit,
           roomPos: new Vector(exitRoomCoords.x, exitRoomCoords.y),
@@ -367,7 +375,12 @@ export class LevelBuilder {
         });
         this._currentNumRoom++;
         assignRoomID(exitRoom, this._gridFlatArray);
+
+        // find endnodes
+        let endNodes = getEndNodes(this._rooms[0], this._rooms, this._edges);
+        //debugger;
         this._rooms = assignRemainingKeysAndTreasures(
+          endNodes,
           this._rooms,
           this._currentNumKeys,
           this._targetNumKeys,
@@ -432,6 +445,7 @@ function setupSeedRooms(rng: Random, grid: GridUnit[]): { rooms: Room[]; edges: 
   const edges: Edge[] = [];
 
   rooms.push({
+    index: 0,
     roomID: UUID.generateUUID(),
     roomType: RoomType.Start,
     roomPos: new Vector(startX, startY),
@@ -441,6 +455,7 @@ function setupSeedRooms(rng: Random, grid: GridUnit[]): { rooms: Room[]; edges: 
   let availableNeighbors = getAvailableNeighbors(new Vector(startX, startY), grid);
   let nextRoomCoords = rng.pickOne(availableNeighbors);
   let nextRoom: Room = {
+    index: 1,
     roomID: UUID.generateUUID(),
     roomType: RoomType.General,
     roomPos: new Vector(nextRoomCoords.x, nextRoomCoords.y),
@@ -467,9 +482,9 @@ function dfs(node: Room, edges: Edge[], visited: Set<Room>, longestPath: Room[])
     if (!visited.has(edge.to)) {
       const newPath = dfs(edge.to, edges, visited, longestPath);
       if (newPath.length > longestPath.length) {
-        longestPath = newPath;
+        longestPath = [...newPath];
+        currentPath.push(...newPath);
       }
-      currentPath.push(...newPath);
     }
   }
 
@@ -479,11 +494,12 @@ function dfs(node: Room, edges: Edge[], visited: Set<Room>, longestPath: Room[])
 function findLongestPath(startNode: Room, edges: Edge[]): Room[] {
   const visited: Set<Room> = new Set();
   const longestPath: Room[] = [];
-
+  //debugger;
   return dfs(startNode, edges, visited, longestPath);
 }
 
 function assignRemainingKeysAndTreasures(
+  endnodes: Room[],
   rooms: Room[],
   currentKeys: number,
   targetKeys: number,
@@ -491,6 +507,16 @@ function assignRemainingKeysAndTreasures(
   targetTreasures: number,
   rng: Random
 ): Room[] {
+  const filteredEndNodes = endnodes.filter(r => r.roomType != RoomType.Exit);
+
+  for (let i = currentTreasures; i < targetTreasures; i++) {
+    let currentEndNode = rng.pickOne(filteredEndNodes);
+    currentEndNode.roomType = RoomType.Treasure;
+    currentTreasures++;
+    const numLockedRooms = rooms.filter(r => r.roomType === RoomType.Treasure && r.locked).length;
+    if (targetKeys - numLockedRooms > 1) currentEndNode.locked = true;
+  }
+
   for (let i = currentKeys; i < targetKeys; i++) {
     const gpRooms = rooms.filter(r => r.roomType === RoomType.General);
     if (gpRooms.length > 0) {
@@ -500,14 +526,26 @@ function assignRemainingKeysAndTreasures(
     }
   }
 
-  for (let i = currentTreasures; i < targetTreasures; i++) {
-    const gpRooms = rooms.filter(r => r.roomType === RoomType.General);
-    if (gpRooms.length > 0) {
-      //pick random room
-      const gpRoom = rng.pickOne(gpRooms);
-      gpRoom.roomType = RoomType.Treasure;
-    }
-  }
-
   return rooms;
+}
+
+function getEndNodes(startingRoom: Room, rooms: Room[], edges: Edge[]): Room[] {
+  const endRooms: Room[] = [];
+
+  const visitRoom = (node: Room): void => {
+    let roomEdges = edges.filter(e => e.from === node);
+    if (roomEdges.length === 0) {
+      endRooms.push(node);
+      return;
+    }
+    let neighbors = roomEdges.map(e => e.to);
+    for (const room of neighbors) {
+      visitRoom(room);
+    }
+  };
+
+  // Assuming you want to start from a specific root node.
+  visitRoom(startingRoom);
+
+  return endRooms;
 }
