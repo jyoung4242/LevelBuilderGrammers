@@ -33,7 +33,6 @@ export function drawTilemap(game: Engine, tmap: TileMap, rooms: Room[], edges: E
     if (currentRoom && currentEdges.length > 0) {
       for (let edge of currentEdges) {
         let edgeGraphic;
-        console.log(edge);
 
         if (edge.to.locked) edgeGraphic = edgeRectClosed.clone();
         else edgeGraphic = edgeRectOpen.clone();
@@ -42,10 +41,10 @@ export function drawTilemap(game: Engine, tmap: TileMap, rooms: Room[], edges: E
         //get edge direction
 
         if (edge.from.roomID === currentRoom.roomID) {
-          if (edge.to.roomID === grid[tileIndex - 1].roomID) direction = "left";
-          else if (edge.to.roomID === grid[tileIndex + 1].roomID) direction = "right";
-          else if (edge.to.roomID === grid[tileIndex - 10].roomID) direction = "up";
-          else if (edge.to.roomID === grid[tileIndex + 10].roomID) direction = "down";
+          if (grid[tileIndex - 1] && edge.to.roomID === grid[tileIndex - 1].roomID) direction = "left";
+          else if (grid[tileIndex + 1] && edge.to.roomID === grid[tileIndex + 1].roomID) direction = "right";
+          else if (grid[tileIndex - 10] && edge.to.roomID === grid[tileIndex - 10].roomID) direction = "up";
+          else if (grid[tileIndex + 10] && edge.to.roomID === grid[tileIndex + 10].roomID) direction = "down";
         }
 
         let edgeOffset: Vector;
@@ -72,7 +71,7 @@ export function drawTilemap(game: Engine, tmap: TileMap, rooms: Room[], edges: E
             edgeOffset = new Vector(0, 0);
             break;
         }
-        console.log(currentRoom.roomType, direction, edge, edgeOffset);
+        //console.log(currentRoom.roomType, direction, edge, edgeOffset);
 
         let tempActor = new Actor({
           name: "edge",

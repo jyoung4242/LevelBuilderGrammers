@@ -13,8 +13,8 @@ await UI.create(document.body, model, template).attached;
 const genLevel = new Signal("generateLevel");
 
 const game = new Engine({
-  width: 800, // the width of the canvas
-  height: 600, // the height of the canvas
+  width: 1200, // the width of the canvas
+  height: 800, // the height of the canvas
   canvasElementId: "cnv", // the DOM canvas element ID, if you are providing your own
   displayMode: DisplayMode.Fixed, // the display mode
   pixelArt: true,
@@ -52,4 +52,4 @@ drawTilemap(game, tmap, rooms, edges, grid);
 game.add(tmap);
 const camera = game.currentScene.camera;
 camera.pos = new Vector(80, 80);
-camera.zoom = 3.5;
+camera.zoom = 2.5;
